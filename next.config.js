@@ -6,8 +6,8 @@ const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
     sassOptions: {
-        includePath: [path.join(__dirname, "styles")],
-        prependData: `@import "./base.scss";`
+        includePaths: [path.join(__dirname, "styles")],
+        prependData: `@import "./base.scss";`,
     }
 }
 
