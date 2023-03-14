@@ -5,7 +5,7 @@ import { RiAccountPinCircleLine, RiArrowDownFill } from "react-icons/ri";
 import { useState } from "react";
 import UserMenu from "./UserMenu";
 
-export default function Top() {
+export default function Top({country}) {
 
     const [loggedIn, setLoggedIn] = useState(true)
     const [visible, setVisible] = useState(false)
@@ -17,8 +17,8 @@ export default function Top() {
                 <div></div>
                 <ul className={styles.top__list}>
                     <li className={styles.li}>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Flag_of_Russia.svg" alt="Флаг" />
-                        <span>Россия / руб.</span>
+                        <img src={country.flag} alt="Флаг" />
+                        <span>{country.name} / руб.</span>
                     </li>
                     <li className={styles.li}>
                         <MdOutlineSecurity />
@@ -46,7 +46,7 @@ export default function Top() {
                     >
                         {
                             loggedIn ? (
-                                <li>
+                                <div>
                                     <div className={styles.flex}>
                                         <img
                                             src="https://www.shareicon.net/data/128x128/2016/07/26/802001_man_512x512.png"
@@ -54,15 +54,15 @@ export default function Top() {
                                         <span>Alexey G.</span>
                                         <MdOutlineArrowDropDown />
                                     </div>
-                                </li>
+                                </div>
                             ) : (
-                                <li>
+                                <div>
                                     <div className={styles.flex}>
                                         <RiAccountPinCircleLine />
                                         <span>Log In</span>
                                         <MdOutlineArrowDropDown />
                                     </div>
-                                </li>
+                                </div>
                             )
                         }
 

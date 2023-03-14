@@ -18,7 +18,7 @@ const NewsLetter = (props) => {
                 />
                 <button
                     className={styles.btn_primary}                  
-                    onClick={"() => subscribe()"}
+                    // onClick={"() => subscribe()"}
                 >
                     SUBSCRIBE
                 </button>

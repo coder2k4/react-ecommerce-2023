@@ -6,7 +6,7 @@ import styles from "./styles.module.scss"
 import Copyright from "./Copyright";
 
 
-export default function Footer() {
+export default function Footer({country}) {
   return (
     <footer className={styles.footer}>
 
@@ -15,7 +15,7 @@ export default function Footer() {
             <Socials/>
             <NewsLetter/>
             <Payment/>
-            <Copyright/>
+            <Copyright country={country}/>
         </div>
 
     </footer>
