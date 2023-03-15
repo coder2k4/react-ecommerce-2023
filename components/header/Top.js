@@ -4,10 +4,11 @@ import { BsSuitHeart } from "react-icons/bs";
 import { RiAccountPinCircleLine, RiArrowDownFill } from "react-icons/ri";
 import { useState } from "react";
 import UserMenu from "./UserMenu";
+import {useSession} from "next-auth/react";
 
 export default function Top({country}) {
 
-    const [loggedIn, setLoggedIn] = useState(true)
+    const { data: session } = useSession()
     const [visible, setVisible] = useState(false)
 
 
@@ -45,13 +46,13 @@ export default function Top({country}) {
                         onMouseLeave={() => { setVisible(false) }}
                     >
                         {
-                            loggedIn ? (
+                            session ? (
                                 <div>
                                     <div className={styles.flex}>
                                         <img
-                                            src="https://www.shareicon.net/data/128x128/2016/07/26/802001_man_512x512.png"
+                                            src={session.user.image}
                                             alt="Avatar" />
-                                        <span>Alexey G.</span>
+                                        <span>{session.user.name}</span>
                                         <MdOutlineArrowDropDown />
                                     </div>
                                 </div>
@@ -68,7 +69,7 @@ export default function Top({country}) {
 
 
                         {
-                            visible && <UserMenu loggedIn={loggedIn} />
+                            visible && <UserMenu session={session} />
                         }
 
 
