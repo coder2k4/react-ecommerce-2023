@@ -8,7 +8,10 @@ import {Form, Formik} from "formik";
 import LoginInput from "../components/inputs/logininput";
 import * as Yup from "yup"
 import CircledIconBtn from "../components/buttons/CircledIconBtn";
-import {getProviders, signIn} from "next-auth/react";
+import {getCsrfToken, getProviders, getSession, signIn} from "next-auth/react";
+import axios from "axios";
+import DotLoaderSpinner from "../components/loaders/dotLoader";
+import Router from "next/router";
 
 
 const initialValues = {
@@ -24,9 +27,10 @@ const initialValues = {
 };
 
 
-export default function Signin({providers}) {
+export default function Signin({providers, callbackUrl, csrfToken}) {
 
     const [user, setUser] = useState(initialValues)
+    const [loading, setLoading] = useState(false);
 
     const {
         login_email,
@@ -78,8 +82,62 @@ export default function Signin({providers}) {
     });
 
 
+    // SUBMIT SING_UP
+    const signUpHandler = async () => {
+        try {
+            setLoading(true)
+
+            const {data} = await axios.post('/api/auth/signup', {
+                name, email, password
+            })
+
+            setUser({...user, success: data.message})
+
+            setLoading(false)
+
+            setTimeout(async () => {
+                let options = {
+                    redirect: false,
+                    email: email,
+                    password: password,
+                };
+                const res = await signIn("credentials", options);
+                await Router.push(callbackUrl || " /")
+            }, 2000)
+        } catch (e) {
+            setLoading(false)
+            setUser({...user, error: e.response.data.message})
+        }
+    }
+
+
+    // SUBMIT SING_IN
+    const signInHandler = async () => {
+        setLoading(true);
+        let options = {
+            redirect: false,
+            email: login_email,
+            password: login_password,
+        };
+        const res = await signIn("credentials", options);
+
+        console.log(res);
+
+        setUser({...user, success: "", error: ""});
+        setLoading(false);
+        if (res?.error) {
+            setLoading(false);
+            setUser({...user, login_error: res?.error});
+        } else {
+            return Router.push(callbackUrl || "/");
+        }
+    };
+
     return (
         <>
+
+            {loading && <DotLoaderSpinner loading={loading}/>}
+
             <Header country={"Russia"}/>
             <div className={styles.login}>
 
@@ -106,11 +164,20 @@ export default function Signin({providers}) {
                                 login_password,
                             }}
                             validationSchema={loginValidation}
-                            // onSubmit={""}
+                            onSubmit={() => {
+                                signInHandler();
+                            }}
                         >
                             {
                                 (form) => (
-                                    <Form>
+                                    <Form method="POST" action="/api/auth/signin/email">
+
+                                        <input
+                                            type="hidden"
+                                            name="csrfToken"
+                                            value={csrfToken}
+                                        />
+
                                         <LoginInput
                                             icon="email"
                                             name="login_email"
@@ -129,6 +196,8 @@ export default function Signin({providers}) {
                                         />
 
                                         <CircledIconBtn type="submit" text="Sign in"/>
+
+
                                         {login_error && (
                                             <span className={styles.error}>{login_error}</span>
                                         )}
@@ -184,9 +253,9 @@ export default function Signin({providers}) {
                                 conf_password,
                             }}
                             validationSchema={registerValidation}
-                            // onSubmit={() => {
-                            //     signUpHandler();
-                            // }}
+                            onSubmit={async () => {
+                                await signUpHandler();
+                            }}
                         >
                             {(form) => (
                                 <Form>
@@ -225,7 +294,9 @@ export default function Signin({providers}) {
                         <div>
                             {success && <span className={styles.success}>{success}</span>}
                         </div>
-                        <div>{error && <span className={styles.error}>{error}</span>}</div>
+                        <div>
+                            {error && <span className={styles.error}>{error}</span>}
+                        </div>
                     </div>
                 </div>
 
@@ -236,11 +307,32 @@ export default function Signin({providers}) {
 }
 
 
-export async function getServerSideProps(props) {
+export async function getServerSideProps(context) {
+
+    const {req, query} = context
+
+    const session = await getSession({req})
+    const { callbackUrl } = query
+
+    if(session) {
+
+        console.log(callbackUrl)
+
+        return {
+            redirect: {
+                destination: callbackUrl ?? "/"
+            }
+        }
+    }
+
+
+    const csrfToken = await getCsrfToken(context)
     const providers = await getProviders()
     return {
         props: {
-            providers: providers ?? []
+            providers: providers ?? [],
+            csrfToken,
+            callbackUrl
         }
     }
 }
